@@ -1,6 +1,6 @@
 name: latlngconv
 description: A package to convert latitude and longitude between WGS84, GCJ-02, BD-09 and WebMercator
-version: 0.0.1
+version: 0.1.0
 author: luckykw <luckykw99@gmail.com>
 homepage: https://github.com/memetea/dart-latlngconv
 

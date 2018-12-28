@@ -67,29 +67,6 @@ double transformLon (double x, double y) {
     return ret;
 }
 
-///Tell [point] is out of china
-bool OutofChina(LatLng point) {
-  if (point.longitude < 72.004 || point.longitude > 137.8347)
-      return true;
-  if (point.latitude < 0.8293 || point.latitude > 55.8271)
-      return true;
-  return false;
-}
-
-///Convert latlng[src] from [fromType] to [toType]
-LatLng LatLngConvert(LatLng src, LatLngType fromType, LatLngType toType) {
-  if (fromType == LatLngType.WGS84 && toType == LatLngType.GCJ02) {
-    return _from_WGS84_to_GCJ02(src);
-  } else if (fromType == LatLngType.GCJ02 && toType == LatLngType.WGS84) {
-    return _from_GCJ02_to_WGS84_precise(src);
-  } else if (fromType == LatLngType.GCJ02 && toType == LatLngType.BD09) {
-    return _from_GCJ02_to_BD09(src);
-  } else if (fromType == LatLngType.WebMercator && toType == LatLngType.WGS84) {
-    return _from_WebMercator_to_WGS84(src);
-  } else if (fromType == LatLngType.WGS84 && toType == LatLngType.WebMercator) {
-    return _from_WGS84_to_WebMercator(src);
-  }
-}
 
 LatLng _from_WGS84_to_GCJ02(LatLng src) {
   var d = delta(src.latitude, src.longitude);
@@ -128,17 +105,17 @@ LatLng _from_GCJ02_to_WGS84_precise(LatLng src) {
 }
 
 LatLng _from_GCJ02_to_BD09(LatLng src) {
-  var x = src.latitude, y = src.longitude;
+  var x = src.longitude, y = src.latitude;
   var z = Math.sqrt(x * x + y * y) + 0.00002 * Math.sin(y * X_PI);
   var theta = Math.atan2(y, x) + 0.000003 * Math.cos(x * X_PI);
-  return LatLng(z * Math.cos(theta) + 0.0065, z * Math.sin(theta) + 0.006);
+  return LatLng(z * Math.sin(theta) + 0.006, z * Math.cos(theta) + 0.0065);
 }
 
 LatLng _from_BD09_to_GCJ02(LatLng src) {
   var x = src.longitude - 0.0065, y = src.latitude - 0.006;
   var z = Math.sqrt(x * x + y * y) - 0.00002 * Math.sin(y * X_PI);
   var theta = Math.atan2(y, x) - 0.000003 * Math.cos(x * X_PI);
-  return LatLng(z * Math.cos(theta), z * Math.sin(theta));
+  return LatLng(z * Math.sin(theta), z * Math.cos(theta));
 }
 
 LatLng _from_WebMercator_to_WGS84(LatLng src) {
@@ -153,4 +130,39 @@ LatLng _from_WGS84_to_WebMercator(LatLng src) {
   var y = src.latitude / 20037508.34 * 180.0;
   y = 180 / PI * (2 * Math.atan(Math.exp(y * PI / 180.0)) - PI / 2);
   return LatLng(y, x);
+}
+
+
+///Tell [point] is out of china
+///this method do a rectangle check. but the actual bound of china is not.
+///so this gives a rough result. use this method should be cautious.
+bool OutofChina(LatLng point) {
+  if (point.longitude < 72.004 || point.longitude > 137.8347)
+      return true;
+  if (point.latitude < 0.8293 || point.latitude > 55.8271)
+      return true;
+  return false;
+}
+
+///Convert latlng[src] from [fromType] to [toType]
+LatLng LatLngConvert(LatLng src, LatLngType fromType, LatLngType toType) {
+  if (fromType == LatLngType.WGS84 && toType == LatLngType.GCJ02) {
+    return _from_WGS84_to_GCJ02(src);
+  } else if (fromType == LatLngType.GCJ02 && toType == LatLngType.WGS84) {
+    return _from_GCJ02_to_WGS84_precise(src);
+  } else if (fromType == LatLngType.GCJ02 && toType == LatLngType.BD09) {
+    return _from_GCJ02_to_BD09(src);
+  } else if (fromType == LatLngType.BD09 && toType == LatLngType.GCJ02) {
+    return _from_BD09_to_GCJ02(src);
+  } else if (fromType == LatLngType.WebMercator && toType == LatLngType.WGS84) {
+    return _from_WebMercator_to_WGS84(src);
+  } else if (fromType == LatLngType.WGS84 && toType == LatLngType.WebMercator) {
+    return _from_WGS84_to_WebMercator(src);
+  } else if (fromType == LatLngType.WGS84 && toType == LatLngType.BD09) {
+    return _from_GCJ02_to_BD09(_from_WGS84_to_GCJ02(src));
+  } else if (fromType == LatLngType.BD09 && toType == LatLngType.WGS84) {
+    return _from_GCJ02_to_WGS84_precise(_from_BD09_to_GCJ02(src));
+  }
+
+  throw("the convertion was not implemented");
 }
